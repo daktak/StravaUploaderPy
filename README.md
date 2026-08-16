@@ -1,6 +1,6 @@
 # StravaUploaderPy
 
-Upload an activity (fit/gpx) to Strava and update values
+Upload an activity (`.gpx` or `.fit`) to Strava and update values
 
 ## Python requirements
 
@@ -11,7 +11,7 @@ pip install -r requirements.txt
 Or directly:
 
 ```
-pip install requests requests-toolbelt python-dateutil
+pip install requests requests-toolbelt
 ```
 
 On Debian/Ubuntu where system Python is externally managed (PEP 668), use a virtual
@@ -19,14 +19,41 @@ environment instead:
 
 ```
 python3 -m venv .venv
-.venv/bin/pip install requests requests-toolbelt python-dateutil
+.venv/bin/pip install requests requests-toolbelt
 .venv/bin/python ./StravaUploader.py test.gpx
 ```
+
+## Usage
+
+Upload an activity using a saved session:
+
+```
+./StravaUploader.py activity.gpx
+```
+
+The uploader sends the file as-is to Strava, which accepts common formats such as
+`.gpx` and `.fit`; the examples below use `.gpx`.
+
+### Options
+
+| Option                                   | Description                                                                                      |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `gpx` (positional)                       | Path to the activity file (`.gpx`/`.fit`) to upload.                                             |
+| `--session PATH`                         | Path to the saved session-cookies JSON (default: `session.json`).                                |
+| `--name TEXT`                            | Rename the uploaded activity.                                                                    |
+| `--type TYPE`                            | Set the activity type (e.g. `GravelRide`, `VirtualRide`, `Run`). Run `--help` for the full list. |
+| `--photos P1 [P2 ...]`                   | One or more image files to attach to the activity.                                               |
+| `--tags TEXT`                            | Comma/space separated tags.                                                                      |
+| `--private {everyone,followers,only_me}` | Activity visibility.                                                                             |
+| `--mute`                                 | Mute the activity from home and club feeds.                                                      |
 
 ## StravaUploader login
 
 `StravaUploader.py` uploads to Strava using a saved session cookie. Login is only supported via a
 session file; automated Google email/password login is not available.
+
+Sessions expire after some time. If uploads start failing with "No valid session found",
+re-export a fresh `_strava4_session` into `session.json` (see below).
 
 Export a logged-in session once and reuse it:
 

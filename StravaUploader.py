@@ -377,7 +377,14 @@ def ImportToStrava(
             print(response.text)
             return
         print("Successfully uploaded file -->" + baseDir + "/" + file)
-        if not name and not photos and not tags and not private and not mute:
+        if (
+            not name
+            and not sport_type
+            and not photos
+            and not tags
+            and not private
+            and not mute
+        ):
             return
         for upload in response.json():
             item = wait_ready(s, upload.get("id"))
@@ -389,7 +396,7 @@ def ImportToStrava(
             if not aid:
                 print("No activity id in upload response")
                 return
-            if name or photos or tags or private or mute:
+            if name or sport_type or photos or tags or private or mute:
                 update_activity(s, aid, name, sport_type, photos, tags, private, mute)
 
 
