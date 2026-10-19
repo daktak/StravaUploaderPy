@@ -126,3 +126,23 @@ These map to Strava's edit-form fields: tags → `activity[tag_list]`, privacy �
 (`everyone` / `followers_only` / `only_me`), and mute → `activity[hide_from_home]`. If the mute
 checkbox is not present in the form (e.g. Strava changes its UI), the script prints a warning and
 skips that part of the update rather than failing.
+
+## Downloading activity photos
+
+`StravaPhotoDownloader.py` downloads the photos attached to an existing activity. It uses the same
+saved session as the uploader, loads the activity page, reads the embedded `photosJson` data and
+downloads each photo's enhanced image when present, otherwise its large version:
+
+```
+./StravaPhotoDownloader.py 20629200268
+```
+
+Photos are saved into `photos/` by default, skipping files that already exist.
+
+### Options
+
+| Option               | Description                                                        |
+| -------------------- | ------------------------------------------------------------------ |
+| `activity_id`        | The activity id (or full activity URL) to download photos from.    |
+| `--session PATH`     | Path to the saved session-cookies JSON (default: `session.json`).  |
+| `--outdir PATH`      | Directory to download photos into (default: `photos`).             |
