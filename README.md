@@ -137,7 +137,12 @@ downloads each photo's enhanced image when present, otherwise its large version:
 ./StravaPhotoDownloader.py 20629200268
 ```
 
-Photos are saved into `photos/` by default, skipping files that already exist.
+Photos are saved into `photos/` by default, skipping files that already exist. Videos are skipped
+unless `--videos` is passed, in which case the video file is downloaded instead of its poster image.
+
+```
+./StravaPhotoDownloader.py 20629200268 --videos
+```
 
 ### Options
 
@@ -146,3 +151,4 @@ Photos are saved into `photos/` by default, skipping files that already exist.
 | `activity_id`        | The activity id (or full activity URL) to download photos from.    |
 | `--session PATH`     | Path to the saved session-cookies JSON (default: `session.json`).  |
 | `--outdir PATH`      | Directory to download photos into (default: `photos`).             |
+| `--videos`           | Also download videos attached to the activity (skipped by default). |

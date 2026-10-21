@@ -17,6 +17,11 @@ parser.add_argument(
 parser.add_argument(
     "--outdir", default="photos", help="Directory to download photos into"
 )
+parser.add_argument(
+    "--videos",
+    action="store_true",
+    help="Also download videos attached to the activity",
+)
 args = parser.parse_args()
 
 
@@ -56,6 +61,25 @@ def extract_photos_json(html):
         return []
 
 
+def is_video(photo):
+    if photo.get("video"):
+        return True
+    return photo.get("media_type") == 2
+
+
+def video_url(photo):
+    enhanced = photo.get("enhanced_photo") or {}
+    if isinstance(enhanced, str):
+        return enhanced
+    return (
+        enhanced.get("video")
+        or photo.get("video")
+        or enhanced.get("large")
+        or photo.get("large")
+        or photo.get("thumbnail")
+    )
+
+
 def photo_url(photo):
     enhanced = photo.get("enhanced_photo") or {}
     if isinstance(enhanced, str):
@@ -63,14 +87,15 @@ def photo_url(photo):
     return enhanced.get("large") or photo.get("large") or photo.get("thumbnail")
 
 
-def filename_for(url, photo):
+def filename_for(url, photo, is_vid=False):
     name = os.path.basename(urlparse(url).path)
     if not name:
-        name = "%s.jpg" % photo.get("photo_id", photo.get("id", "photo"))
+        ext = ".mp4" if is_vid else ".jpg"
+        name = "%s%s" % (photo.get("photo_id", photo.get("id", "photo")), ext)
     return name
 
 
-def download_photos(activity_id, session_path, outdir):
+def download_photos(activity_id, session_path, outdir, with_videos):
     s = Session()
     s.headers["User-Agent"] = (
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
@@ -93,14 +118,21 @@ def download_photos(activity_id, session_path, outdir):
         print("No photosJson found on activity page")
         return
 
-    print("Found %d photo(s)" % len(photos))
+    videos = [p for p in photos if is_video(p)]
+    stills = [p for p in photos if not is_video(p)]
+    note = " (pass --videos to download videos)" if videos and not with_videos else ""
+    print("Found %d photo(s), %d video(s)%s" % (len(stills), len(videos), note))
     os.makedirs(outdir, exist_ok=True)
     for photo in photos:
-        url = photo_url(photo)
+        vid = is_video(photo)
+        if vid and not with_videos:
+            print("Skipping video %s (pass --videos)" % photo.get("photo_id"))
+            continue
+        url = video_url(photo) if vid else photo_url(photo)
         if not url:
             print("No downloadable URL for photo %s" % photo.get("photo_id"))
             continue
-        path = os.path.join(outdir, filename_for(url, photo))
+        path = os.path.join(outdir, filename_for(url, photo, vid))
         if os.path.exists(path):
             print("Already downloaded: " + path)
             continue
@@ -116,7 +148,7 @@ def download_photos(activity_id, session_path, outdir):
 
 def main():
     aid = args.activity_id.rstrip("/").split("/")[-1]
-    download_photos(aid, args.session, args.outdir)
+    download_photos(aid, args.session, args.outdir, args.videos)
 
 
 if __name__ == "__main__":
